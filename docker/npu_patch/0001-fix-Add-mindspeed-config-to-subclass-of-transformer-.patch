@@ -1,0 +1,108 @@
+From 70db5bcba90b34d28d61223d05d307b22cc10105 Mon Sep 17 00:00:00 2001
+From: JialiZheng1 <jializheng@huawei.com>
+Date: Thu, 5 Mar 2026 11:48:38 +0800
+Subject: [PATCH] =?UTF-8?q?fix=EF=BC=9AAdd=20mindspeed=20config=20to=20sub?=
+ =?UTF-8?q?class=20of=20transformer=20config?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Co-authored-by: JialiZheng<jializheng@huawei.com>
+
+
+
+# message auto-generated for no-merge-commit merge:
+!3284 merge master into master
+
+fix：Add mindspeed config to subclass of transformer config
+
+Created-by: JialiZheng1
+Commit-by: JialiZheng
+Merged-by: ascend-robot
+Description: Add mindspeed config to subclass of transformer config
+
+See merge request: Ascend/MindSpeed!3284
+---
+ .../core/megatron_basic/arguments_basic.py    | 24 +++++++++++++++++++
+ .../megatron_basic/megatron_basic.py          |  6 +++--
+ mindspeed/patch_utils.py                      |  7 +++++-
+ 3 files changed, 34 insertions(+), 3 deletions(-)
+
+diff --git a/mindspeed/core/megatron_basic/arguments_basic.py b/mindspeed/core/megatron_basic/arguments_basic.py
+index 8ea25b9f..97c0a13e 100644
+--- a/mindspeed/core/megatron_basic/arguments_basic.py
++++ b/mindspeed/core/megatron_basic/arguments_basic.py
+@@ -113,3 +113,27 @@ def transformer_config_init_wrapper(fn):
+         fn(self, *args, **known_config)
+ 
+     return wrapper
++
++
++def transformer_config_init_subclass(cls, **kwargs):
++    mutable_types = (list, dict, set, bytearray)
++    unknown_config = {}
++    full_args = vars(get_full_args()).copy()
++    full_args.update(kwargs)
++
++    config_key = inspect.signature(cls).parameters
++    for key, value in full_args.items():
++        if key not in config_key:
++            unknown_config[key] = value
++
++    for key, value in unknown_config.items():
++        if not hasattr(cls, key):
++            cls.__annotations__[key] = type(value)
++            value = field(default_factory=value) if callable(value) and not isinstance(value, type) else value
++            if callable(value) and not isinstance(value, type):
++                value = field(default_factory=value)
++            elif type(value) in mutable_types:
++                value = field(default_factory=lambda: value)
++            else:
++                value = value
++            setattr(cls, key, value)
+\ No newline at end of file
+diff --git a/mindspeed/features_manager/megatron_basic/megatron_basic.py b/mindspeed/features_manager/megatron_basic/megatron_basic.py
+index 355913e1..36360d11 100644
+--- a/mindspeed/features_manager/megatron_basic/megatron_basic.py
++++ b/mindspeed/features_manager/megatron_basic/megatron_basic.py
+@@ -43,9 +43,11 @@ class MegatronBasicFeature(MindSpeedFeature):
+ 
+     def register_mcore_basic_patches(self, pm, args):
+         # configuration patches
+-        from mindspeed.core.megatron_basic.arguments_basic import transformer_config_init_wrapper, transformer_config_post_init_wrapper
++        from mindspeed.core.megatron_basic.arguments_basic import (transformer_config_init_wrapper,
++                                                                   transformer_config_post_init_wrapper,
++                                                                   transformer_config_init_subclass)
+         pm.register_patch("megatron.core.transformer.transformer_config.TransformerConfig.__init__", transformer_config_init_wrapper)
+-        pm.register_patch("megatron.core.transformer.transformer_config.MLATransformerConfig.__init__", transformer_config_init_wrapper)
++        pm.register_patch("megatron.core.transformer.transformer_config.TransformerConfig.__init_subclass__", classmethod(transformer_config_init_subclass))
+         pm.register_patch("megatron.core.transformer.transformer_config.TransformerConfig.__post_init__", transformer_config_post_init_wrapper)
+ 
+         # initialization patches
+diff --git a/mindspeed/patch_utils.py b/mindspeed/patch_utils.py
+index a489d58c..c3cd6f9f 100644
+--- a/mindspeed/patch_utils.py
++++ b/mindspeed/patch_utils.py
+@@ -1,4 +1,5 @@
+ import importlib
++import inspect
+ import sys
+ import types
+ from typing import List, Dict, Union
+@@ -93,8 +94,12 @@ class Patch:
+ 
+     def remove_patch(self):
+         for key, value in sys.modules.copy().items():
+-            if 'mindspeed' in key:
++            if 'mindspeed' in key or 'torch.classes' == key:
+                 continue
++
++            if inspect.isclass(self.orig_module) and hasattr(value, self.orig_module_name.split('.')[-1]):
++                value = getattr(value, self.orig_module_name.split('.')[-1])
++
+             if self.orig_func_name is not None and hasattr(value, self.orig_func_name) \
+                     and id(getattr(value, self.orig_func_name)) == id(self.final_patch_func):
+                 setattr(value, self.orig_func_name, self.orig_func)
+-- 
+2.34.1
+
