@@ -1,6 +1,6 @@
 #
 FROM quay.io/ascend/vllm-ascend:v0.18.0-a3
-COPY .docker/npu_patch /root/patch
+COPY ./docker/npu_patch /root/patch
 WORKDIR /root
 ARG PIP_INDEX_URL="https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
 
