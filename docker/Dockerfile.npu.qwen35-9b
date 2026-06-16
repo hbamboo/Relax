@@ -73,6 +73,8 @@ RUN cd /root/MindSpeed && \
     patch -p1 < /root/patch/0001-use-triton-gdn-fusion-ops.patch && \
     cd /root/sgl-kernel-npu && \
 	patch -p1 < /root/patch/0001-tms-adapt-colacate.patch && \
+    cd /root/Relax && \
+    patch -p1 < /root/patch/0001-add-relax.patch && \
 	cd /root/patch && \
 	pip install torch_npu-*.whl
 
