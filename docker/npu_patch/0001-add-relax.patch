@@ -1,0 +1,13 @@
+diff --git a/relax/backends/megatron/model_provider.py b/relax/backends/megatron/model_provider.py
+index 787a234..f8f22f7 100644
+--- a/relax/backends/megatron/model_provider.py
++++ b/relax/backends/megatron/model_provider.py
+@@ -330,6 +330,9 @@ def get_model_provider_func(
+             provider.fp16 = False
+             provider.bf16 = True
+             provider.params_dtype = torch.bfloat16
++        if hasattr(args, "gradient_accumulation_fusion"):
++            provider.gradient_accumulation_fusion = args.gradient_accumulation_fusion
++        provider.gradient_accumulation_fusion=False
+ 
+         provider.finalize()
