@@ -6,9 +6,9 @@
 
 ## 模型支持
 
-| 模型     | 训练场景 | Sync | Async | 训练所需最小卡数 | 参考脚本                                                |
-| -------- | -------- | ---- | ----- | ---------------- | ------------------------------------------------------- |
-| Qwen3-4B | DAPO     | √    | √     | 910C 2卡         | `scripts/training/text/run-qwen3-4B-4xnpu-colocate.sh` |
+| 模型       | 训练场景 | Sync | Async | 训练所需最小卡数 | 参考脚本                                                |
+| ---------- | -------- | ---- | ----- | ---------------- | ------------------------------------------------------- |
+| Qwen3-4B   | DAPO     | √    | √     | 910C 2卡         | `scripts/training/text/run-qwen3-4B-4xnpu-colocate.sh`  |
 | Qwen3.5-9B | DAPO     | √    | √     | 910C 2卡         | `scripts/training/text/run-qwen35-9B-4xnpu-colocate.sh` |
 
 ## 环境准备
