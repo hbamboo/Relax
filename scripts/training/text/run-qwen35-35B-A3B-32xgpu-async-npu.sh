@@ -13,9 +13,10 @@ unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY
 
 ulimit -n 65535
 
-export HCCL_SOCKET_IFNAME=enp23s0f3
-export GLOO_SOCKET_IFNAME=enp23s0f3
-export TP_SOCKET_IFNAME=enp23s0f3
+NET_IFNAME=$(ip route show default 2>/dev/null | awk '{print $5; exit}')
+export HCCL_SOCKET_IFNAME=${NET_IFNAME}
+export GLOO_SOCKET_IFNAME=${NET_IFNAME}
+export TP_SOCKET_IFNAME=${NET_IFNAME}
 export HCCL_CONNECT_TIMEOUT=1200
 
 export RAY_DEDUP_LOGS=0
@@ -50,7 +51,7 @@ if [ "$MASTER_ADDR" = "$CURRENT_IP" ]; then
       --ref-load ${MODEL_DIR}/Qwen3.5-35B-A3B
       --megatron-to-hf-mode bridge
       # --load ${EXP_DIR}/Qwen3.5-9B_mcore_4xnpu/
-      --save ${MODEL_DIR}/Qwen3.5-35B-A3B-save
+      --save ${EXP_DIR}/Qwen3.5-35B-A3B-save
       --save-interval 200
 	  --max-actor-ckpt-to-keep 1
    )
@@ -101,7 +102,7 @@ if [ "$MASTER_ADDR" = "$CURRENT_IP" ]; then
 
       --qkv-format bshd
       --micro-batch-size 1
-      --max-tokens-per-gpu 10240
+      --max-tokens-per-gpu 20480
 
       --no-rope-fusion
       --no-gradient-accumulation-fusion
@@ -133,8 +134,9 @@ if [ "$MASTER_ADDR" = "$CURRENT_IP" ]; then
 
    WANDB_ARGS=(
 	   --use-metrics-service
-       --tb-project-name  ${PROJECT_NAME}
-       --tb-experiment-name qwen35-9B-GRPO-4x-sync-${now}
+       --use-tensorboard
+      --tb-project-name  ${PROJECT_NAME}
+       --tb-experiment-name qwen35-35B-A3B-32x-async-${now}
     #    --use-wandb
     #    --wandb-project relax
     #    --wandb-group qwen35-35B-test

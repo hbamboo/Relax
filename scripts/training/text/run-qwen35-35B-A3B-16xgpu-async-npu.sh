@@ -8,9 +8,10 @@
 #   bash scripts/training/text/run-qwen35-35B-A3B-16xgpu-async.sh
 set -ex
 set -o pipefail
-export HCCL_SOCKET_IFNAME=enp23s0f3
-export GLOO_SOCKET_IFNAME=enp23s0f3
-export TP_SOCKET_IFNAME=enp23s0f3
+NET_IFNAME=$(ip route show default 2>/dev/null | awk '{print $5; exit}')
+export HCCL_SOCKET_IFNAME=${NET_IFNAME}
+export GLOO_SOCKET_IFNAME=${NET_IFNAME}
+export TP_SOCKET_IFNAME=${NET_IFNAME}
 export HCCL_CONNECT_TIMEOUT=1200
 
 export RAY_DEDUP_LOGS=0
@@ -91,7 +92,7 @@ PERF_ARGS=(
 
    #--use-dynamic-batch-size
    --qkv-format bshd
-   --max-tokens-per-gpu 10240
+   --max-tokens-per-gpu 20480
    --micro-batch-size 1 # avoid OOM
    --no-gradient-accumulation-fusion
    --no-rope-fusion
@@ -142,6 +143,7 @@ SGLANG_ARGS=(
 )
 
 WANDB_ARGS=(
+   --use-tensorboard
    --use-clearml
    --use-metrics-service
    --tb-project-name  ${PROJECT_NAME}

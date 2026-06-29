@@ -13,9 +13,10 @@ unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY
 
 ulimit -n 65535
 
-export HCCL_SOCKET_IFNAME=enp23s0f3
-export GLOO_SOCKET_IFNAME=enp23s0f3
-export TP_SOCKET_IFNAME=enp23s0f3
+NET_IFNAME=$(ip route show default 2>/dev/null | awk '{print $5; exit}')
+export HCCL_SOCKET_IFNAME=${NET_IFNAME}
+export GLOO_SOCKET_IFNAME=${NET_IFNAME}
+export TP_SOCKET_IFNAME=${NET_IFNAME}
 export HCCL_CONNECT_TIMEOUT=1200
 
 export RAY_DEDUP_LOGS=0
@@ -47,7 +48,7 @@ CKPT_ARGS=(
    --megatron-to-hf-mode bridge
    # --load ${EXP_DIR}/Qwen3.5-9B_mcore_4xnpu/
    # --load ${SCRIPT_DIR}/Qwen3.5-35B-A3B-save
-   --save ${SCRIPT_DIR}/Qwen3.5-35B-A3B-save
+   --save ${EXP_DIR}/Qwen3.5-35B-A3B-save
    --save-interval 100
 )
 
@@ -72,6 +73,7 @@ ROLLOUT_ARGS=(
 
 EVAL_ARGS=(
    --eval-interval 20
+   --log-passrate
    --skip-eval-before-train
    --eval-prompt-data aime ${EXP_DIR}/aime-2024/aime-2024.jsonl
    --n-samples-per-eval-prompt 8
@@ -93,7 +95,7 @@ PERF_ARGS=(
    # Packing is not supported for GDN currently
    --qkv-format bshd
    --micro-batch-size 1
-   --max-tokens-per-gpu 10240
+   --max-tokens-per-gpu 20480
    --no-rope-fusion
    --no-gradient-accumulation-fusion
 )
@@ -120,6 +122,14 @@ OPTIMIZER_ARGS=(
    --overlap-cpu-optimizer-d2h-h2d
    --use-precision-aware-optimizer
    --use-distributed-optimizer
+)
+
+WANDB_ARGS=(
+   --use-tensorboard
+   --use-clearml
+   --use-metrics-service
+   --tb-project-name  ${PROJECT_NAME}
+   --tb-experiment-name qwen35-35B-A3B-16x-sync-${now}
 )
 
 SGLANG_ARGS=(
@@ -167,4 +177,3 @@ mkdir -p log
    "${EVAL_ARGS[@]}" \
    "${SGLANG_ARGS[@]}" \
    "${MISC_ARGS[@]}" 2>&1 | tee log/qwen35-9B-MATH-gpu4-sync-${now}.log
-
