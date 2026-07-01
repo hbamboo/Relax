@@ -1369,10 +1369,7 @@ class MegatronTrainRayActor(TrainRayActor):
         # paused model (process groups + tms) so save can issue collectives and
         # touch GPU tensors.
         if self.args.offload_train and self._per_step_rollout:
-            if device_utils.is_npu_available:
-                reload_process_groups()
-            else:
-                self.wake_up()
+            reload_process_groups()
 
         if self.args.async_save:
             from megatron.training.async_utils import maybe_finalize_async_save
@@ -1395,10 +1392,7 @@ class MegatronTrainRayActor(TrainRayActor):
             save_hf_model(self.args, rollout_id, self.model)
 
         if self.args.offload_train and self._per_step_rollout:
-            if device_utils.is_npu_available:
-                destroy_process_groups()
-            else:
-                self.sleep()
+            destroy_process_groups()
 
         telemetry.mark_save_end(rollout_id, role=self.role)
 
