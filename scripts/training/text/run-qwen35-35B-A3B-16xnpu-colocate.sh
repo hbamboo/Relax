@@ -2,10 +2,10 @@
 
 # Copyright (c) 2026 Relax Authors. All Rights Reserved.
 #
-# Qwen3-4B 4xGPU fully async training script.
+# Qwen35-35B-A3B 16xNPU fully async training script.
 #
 # Usage:
-#   NUM_GPUS=4 bash scripts/training/text/run-qwen3-4B-4xgpu-async.sh
+# bash scripts/training/text/run-qwen35-35B-A3B-16xnpu-async.sh
 
 set -ex
 set -o pipefail
@@ -17,7 +17,7 @@ export HCCL_SOCKET_IFNAME=enp23s0f3
 export GLOO_SOCKET_IFNAME=enp23s0f3
 export TP_SOCKET_IFNAME=enp23s0f3
 export HCCL_CONNECT_TIMEOUT=1200
-export PYTORCH_NPU_ALLOC_CONF="expandable_segments:True"
+# export PYTORCH_NPU_ALLOC_CONF="expandable_segments:True"
 export RAY_DEDUP_LOGS=0
 export PYTHONBUFFERED=1
 
@@ -45,10 +45,10 @@ CKPT_ARGS=(
    --hf-checkpoint ${EXP_DIR}/Qwen3.5-35B-A3B
    --ref-load ${EXP_DIR}/Qwen3.5-35B-A3B
    --megatron-to-hf-mode bridge
-   # --load ${EXP_DIR}/Qwen3.5-9B_mcore_4xnpu/
    # --load ${SCRIPT_DIR}/Qwen3.5-35B-A3B-save
-   --save ${SCRIPT_DIR}/Qwen3.5-35B-A3B-save
+   --save ${EXP_DIR}/Qwen3.5-35B-A3B-save-lxl
    --save-interval 100
+   --max-actor-ckpt-to-keep 1
 )
 
 PROMPT_SET=${EXP_DIR}/dapo-math-17k/dapo-math-17k.jsonl
@@ -71,12 +71,13 @@ ROLLOUT_ARGS=(
 )
 
 EVAL_ARGS=(
+   --log-passrate
    --eval-interval 20
    --skip-eval-before-train
    --eval-prompt-data aime ${EXP_DIR}/aime-2024/aime-2024.jsonl
    --n-samples-per-eval-prompt 8
    --eval-max-response-len 8192
-   --eval-top-p 0.7
+   #--eval-top-p 0.7
 )
 
 PERF_ARGS=(
@@ -155,9 +156,8 @@ mkdir -p log
    -- python3 -m relax.entrypoints.train \
    --resource '{"actor": [1, 16], "rollout": [1, 16]}'\
    --max-staleness 0 \
-   --num-data-storage-units 1 \
-   --num-gpus-per-node 16 \
    --colocate \
+   --num-gpus-per-node 16 \
    --use-health-check \
    "${MODEL_ARGS[@]}" \
    "${CKPT_ARGS[@]}" \
