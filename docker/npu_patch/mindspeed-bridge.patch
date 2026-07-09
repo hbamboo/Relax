@@ -32,10 +32,10 @@ index 818af29..ef97078 100644
          elif self.use_ascend_gdn:
              self.gated_delta_rule = flash_gated_delta_rule
 diff --git a/mindspeed_bridge/models/qwen_vl/qwen35_vl_provider.py b/mindspeed_bridge/models/qwen_vl/qwen35_vl_provider.py
-index d495c47..76c8bc1 100644
+index d495c47..f08ea49 100644
 --- a/mindspeed_bridge/models/qwen_vl/qwen35_vl_provider.py
 +++ b/mindspeed_bridge/models/qwen_vl/qwen35_vl_provider.py
-@@ -402,21 +402,21 @@ class Qwen35VLModelProvider(GPTModelProvider):
+@@ -402,22 +402,6 @@ class Qwen35VLModelProvider(GPTModelProvider):
              self.vision_config = Qwen3_5VisionConfig()
          super().__post_init__()
  
@@ -54,25 +54,11 @@ index d495c47..76c8bc1 100644
 -                f"TP size {self.tensor_model_parallel_size} should be less than or equal to "
 -                f"num_query_groups {self.num_query_groups}. Please use a smaller TP size."
 -            )
-+    # def finalize(self) -> None:
-+    #     self.validate_parallelism()
-+    #     super().finalize()
-+
-+    # def validate_parallelism(self):
-+    #     """Validate that parallelism settings are compatible with this model's architecture.
-+
-+    #     Call this after mutating parallelism attributes (e.g. tensor_model_parallel_size)
-+    #     on an already-constructed provider, since finalize() only runs once before provide().
-+    #     """
-+    #     if self.num_query_groups < self.tensor_model_parallel_size:
-+    #         raise ValueError(
-+    #             f"TP size {self.tensor_model_parallel_size} should be less than or equal to "
-+    #             f"num_query_groups {self.num_query_groups}. Please use a smaller TP size."
-+    #         )
- 
+-
      def provide(self, pre_process=None, post_process=None, vp_stage=None) -> Qwen3VLModel:
          """Provide a Qwen3.5 VL dense model instance with vision and language components."""
-@@ -595,21 +595,21 @@ class Qwen35VLMoEModelProvider(GPTModelProvider):
+         language_transformer_config = self
+@@ -595,21 +579,6 @@ class Qwen35VLMoEModelProvider(GPTModelProvider):
              self.vision_config = Qwen3_5MoeVisionConfig()
          super().__post_init__()
  
@@ -91,21 +77,6 @@ index d495c47..76c8bc1 100644
 -                f"TP size {self.tensor_model_parallel_size} should be less than or equal to "
 -                f"num_query_groups {self.num_query_groups}. Please use a smaller TP size."
 -            )
-+    # def finalize(self) -> None:
-+    #     self.validate_parallelism()
-+    #     super().finalize()
-+
-+    # def validate_parallelism(self):
-+    #     """Validate that parallelism settings are compatible with this model's architecture.
-+
-+    #     Call this after mutating parallelism attributes (e.g. tensor_model_parallel_size)
-+    #     on an already-constructed provider, since finalize() only runs once before provide().
-+    #     """
-+    #     if self.num_query_groups < self.tensor_model_parallel_size:
-+    #         raise ValueError(
-+    #             f"TP size {self.tensor_model_parallel_size} should be less than or equal to "
-+    #             f"num_query_groups {self.num_query_groups}. Please use a smaller TP size."
-+    #         )
  
      def provide(self, pre_process=None, post_process=None, vp_stage=None) -> Qwen3VLModel:
          """Provide a Qwen3.5 VL model instance with vision and language components.
