@@ -8,9 +8,9 @@
 #   bash scripts/training/text/run-qwen35-35B-A3B-16xgpu-async.sh
 set -ex
 set -o pipefail
-export HCCL_SOCKET_IFNAME=enp23s0f3
-export GLOO_SOCKET_IFNAME=enp23s0f3
-export TP_SOCKET_IFNAME=enp23s0f3
+export HCCL_SOCKET_IFNAME="${HCCL_SOCKET_IFNAME:-enp23s0f3}"
+export GLOO_SOCKET_IFNAME="${GLOO_SOCKET_IFNAME:-enp23s0f3}"
+export TP_SOCKET_IFNAME="${TP_SOCKET_IFNAME:-enp23s0f3}"
 export HCCL_CONNECT_TIMEOUT=1200
 export PYTORCH_NPU_ALLOC_CONF="expandable_segments:True"
 export RAY_DEDUP_LOGS=0
